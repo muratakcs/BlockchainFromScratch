@@ -1,11 +1,16 @@
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+
 
 public class Peer {
 
     public static Peer[] peers;
+    public static Random rand;
 
     private BlockingQueue<String> queue;
     private ServerSocket serverSocket;
@@ -13,9 +18,13 @@ public class Peer {
     private int id;
     private static int countPeers = 0;
 
+    private List<String> transactions;
+
     public Peer() {
         id = countPeers++;
         queue = new LinkedBlockingQueue<>();
+        rand = new Random(System.currentTimeMillis());
+        transactions = new ArrayList<>();
         try {
             serverSocket = new ServerSocket(6000 + id);
         } catch (IOException e) {
@@ -41,11 +50,31 @@ public class Peer {
             while (true) {
                 try {
                     String message = queue.take(); // blocks if queue is empty
+                    transactions.add(message);
                     // Process the message
-                    System.out.println("Peer " + this.id + ": Processed message: " + message);
+                    System.out.println("Peer " + this.id + ": Processed message: " + message+" Number of transactions got: "+transactions.size());
+                    
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+            }
+        }).start();
+    }
+
+    public void startPeerTransactions() {
+        new Thread(() -> {
+            while (true) {
+                int waitForNextTransactionTime=rand.nextInt(10000)+3000;
+                try {
+                    Thread.sleep(waitForNextTransactionTime);
+                    // Make a random transaction
+                    int receiver = rand.nextInt(peers.length);
+                    while(receiver==this.id) receiver = rand.nextInt(peers.length);
+                    int amount = rand.nextInt(1000000); // A better probability distribution makes more sense.
+                    this.broadcastToAllPeers("PAY "+amount+" TO "+receiver);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }                
             }
         }).start();
     }

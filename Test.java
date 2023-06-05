@@ -11,6 +11,7 @@ public class Test {
             Peer.peers[i] = new Peer();
             Peer.peers[i].startServer();
             Peer.peers[i].startConsumer();
+            Peer.peers[i].startPeerTransactions();
         }
         
         // Wait to make sure servers are properly opened
@@ -34,7 +35,11 @@ public class Test {
             }
         }
         
+        // Random broadcasting experiment
         Peer.peers[2].broadcastToAllPeers("Hello from peer "+2);
+
+        
+
         
     }
     
