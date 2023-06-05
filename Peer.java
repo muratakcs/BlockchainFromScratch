@@ -20,6 +20,8 @@ public class Peer {
 
     private List<String> transactions;
 
+    // Creates a peer, assigns the next available id, initializes random generator
+    // Initializes transactions list and starts the server socket
     public Peer() {
         id = countPeers++;
         queue = new LinkedBlockingQueue<>();
@@ -32,6 +34,7 @@ public class Peer {
         }
     }
 
+    //Starts the listening server
     public void startServer() {
         new Thread(() -> {
             while (true) {
@@ -45,14 +48,18 @@ public class Peer {
         }).start();
     }
 
+    // While the message queue has new messages, reads them and processes them
+    // Here, processing is putting it into the transaction list
+    // Beware that this is not a trivial task, remember that the order of 
+    // Transactions is very important. This may insert a transaction to a specific position in the list
     public void startConsumer() {
         new Thread(() -> {
             while (true) {
                 try {
                     String message = queue.take(); // blocks if queue is empty
-                    transactions.add(message);
+                    transactions.add(message); // For now, just add it to the end of transactions
                     // Process the message
-                    System.out.println("Peer " + this.id + ": Processed message: " + message+" Number of transactions got: "+transactions.size());
+                    System.out.println("Peer " + this.id + ": Transaction added -> " + message+" ==> Number of txs: "+transactions.size());
                     
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -61,6 +68,7 @@ public class Peer {
         }).start();
     }
 
+    // This is a user simulation (it randomly initializes some transactions from time to time)
     public void startPeerTransactions() {
         new Thread(() -> {
             while (true) {
@@ -79,6 +87,7 @@ public class Peer {
         }).start();
     }
 
+    // Connects to another peer.
     public void connectToPeer(Peer peer) {
         try {
             this.clientSocket = new Socket("localhost", 6000 + peer.id);
@@ -87,6 +96,7 @@ public class Peer {
         }
     }
 
+    // When a message arrives, reads it from the input stream reader and puts it into the queue
     private void receiveMessage(Socket socket) {
         try {
             BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -99,6 +109,7 @@ public class Peer {
         }
     }
 
+    // Sends a message to a specific peer
     public void sendMessage(int peerid, String message) {
         this.connectToPeer(Peer.peers[peerid]);
         new Thread(() -> {
@@ -111,7 +122,7 @@ public class Peer {
         }).start();
     }
 
-
+    // Broadcasts a message to all peers
     public void broadcastToAllPeers(String message) {
         for(int peerid=0; peerid<peers.length; peerid++){
             this.connectToPeer(Peer.peers[peerid]);

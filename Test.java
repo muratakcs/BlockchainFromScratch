@@ -22,7 +22,7 @@ public class Test {
         }
 
         // Sending a few random messages
-        int s,r;
+        /*int s,r;
         for(int i=0; i<10; i++) {
             s = rand.nextInt(4);
             r = s;
@@ -38,7 +38,7 @@ public class Test {
         // Random broadcasting experiment
         Peer.peers[2].broadcastToAllPeers("Hello from peer "+2);
 
-        
+        */
 
         
     }
