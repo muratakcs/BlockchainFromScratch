@@ -20,6 +20,10 @@ public class Peer {
 
     private List<String> transactions;
 
+    //Unspent transaction outputs. For a cc like bitcoin, we need this to
+    //check how much one can spend because there is no balance
+    private List<String> utxo;
+
     // Creates a peer, assigns the next available id, initializes random generator
     // Initializes transactions list and starts the server socket
     public Peer() {
@@ -74,6 +78,7 @@ public class Peer {
             while (true) {
                 int waitForNextTransactionTime=rand.nextInt(10000)+3000;
                 try {
+                    //Wait for some random duration
                     Thread.sleep(waitForNextTransactionTime);
                     // Make a random transaction
                     int receiver = rand.nextInt(peers.length);
