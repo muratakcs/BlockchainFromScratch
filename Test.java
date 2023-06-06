@@ -1,9 +1,9 @@
-import java.util.Random;
+//import java.util.Random;
 
 public class Test {
     public static void main(String[] args) {
 
-        Random rand = new Random(System.currentTimeMillis());
+        //Random rand = new Random(System.currentTimeMillis());
         
         // Creating peers.
         Peer.peers = new Peer[4];

@@ -1,5 +1,3 @@
-import java.util.ArrayList;
-import java.util.List;
 import java.security.MessageDigest;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
@@ -10,10 +8,10 @@ import java.math.BigInteger;
 class TransactionOutput {
     public String id;
     public PublicKey recipient;
-    public float value;
+    public int value;
     public String parentTransactionId;
 
-    public TransactionOutput(PublicKey recipient, float value, String parentTransactionId) {
+    public TransactionOutput(PublicKey recipient, int value, String parentTransactionId) {
         this.recipient = recipient;
         this.value = value;
         this.parentTransactionId = parentTransactionId;

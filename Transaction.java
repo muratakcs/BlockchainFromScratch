@@ -93,7 +93,7 @@ class Transaction {
     }
 
     public boolean verifySignature() {
-        String data = Wallet.getStringFromPublicKey(sender) + Wallet.getStringFromPublicKey(recipient) + Float.toString(value);
+        String data = Wallet.getStringFromPublicKey(sender) + Wallet.getStringFromPublicKey(recipient) + Integer.toString(value);
         return verifyECDSASig(Wallet.getStringFromPublicKey(sender), data, signature);      
     }
 
@@ -126,7 +126,7 @@ class Transaction {
         }
 
         // Generate transaction outputs:
-        float leftOver = getInputsValue() - value; //get value of inputs then the left over change:
+        int leftOver = getInputsValue() - value; //get value of inputs then the left over change:
         transactionId = calculateHash();
         outputs.add(new TransactionOutput(this.recipient, value, transactionId)); //send value to recipient
         outputs.add(new TransactionOutput(this.sender, leftOver, transactionId)); //send the left over 'change' back to sender
@@ -156,8 +156,8 @@ class Transaction {
         }
     }
 
-    public float getInputsValue() {
-        float total = 0;
+    public int getInputsValue() {
+        int total = 0;
         for (TransactionInput i : inputs) {
             if (i.UTXO == null) continue; // if Transaction can't be found skip it
             total += i.UTXO.value;
@@ -165,8 +165,8 @@ class Transaction {
         return total;
     }
 
-    public float getOutputsValue() {
-        float total = 0;
+    public int getOutputsValue() {
+        int total = 0;
         for (TransactionOutput o : outputs) {
             total += o.value;
         }
