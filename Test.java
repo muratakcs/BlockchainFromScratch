@@ -15,11 +15,11 @@ public class Test {
         }
         
         // Wait to make sure servers are properly opened
-        try {
+        /*try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
             e.printStackTrace();
-        }
+        }*/
 
         // Sending a few random messages
         /*int s,r;
