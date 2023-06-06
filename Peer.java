@@ -9,8 +9,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class Peer {
 
-    public static Peer[] peers;
+    public static Peer[] peers; // In a real system, there must be a listing of peer ids to broadcast, here we keep all peers in this array
     public static Random rand;
+    public Blockchain blockchain;  // This is this particular peer's copy of the blockchain
+    private Wallet wallet;      // This is the wallet of this peer that holds the keys and UTXOs to be used later
 
     private BlockingQueue<String> queue;
     private ServerSocket serverSocket;
@@ -18,11 +20,7 @@ public class Peer {
     private int id;
     private static int countPeers = 0;
 
-    private List<String> transactions;
-
-    //Unspent transaction outputs. For a cc like bitcoin, we need this to
-    //check how much one can spend because there is no balance
-    private List<String> utxo;
+    private ArrayList<Transaction> mempool; //https://www.btcturk.com/bilgi-platformu/bitcoin-mempool-nedir/
 
     // Creates a peer, assigns the next available id, initializes random generator
     // Initializes transactions list and starts the server socket
@@ -30,12 +28,24 @@ public class Peer {
         id = countPeers++;
         queue = new LinkedBlockingQueue<>();
         rand = new Random(System.currentTimeMillis());
-        transactions = new ArrayList<>();
+        mempool = new ArrayList<>();
+        blockchain = new Blockchain();
+        wallet = new Wallet(id); // Normally a wallet should be anonymous, or may not be, but we add this for debugging
         try {
             serverSocket = new ServerSocket(6000 + id);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    // Method to add a transaction to the mempool
+    public void addToMempool(Transaction tx) {
+        this.mempool.add(tx);
+    }
+
+    // Method to get the mempool
+    public ArrayList<Transaction> getMempool() {
+        return this.mempool;
     }
 
     //Starts the listening server
@@ -52,6 +62,10 @@ public class Peer {
         }).start();
     }
 
+    public Blockchain getBlockchain() {
+        return blockchain;
+    }
+
     // While the message queue has new messages, reads them and processes them
     // Here, processing is putting it into the transaction list
     // Beware that this is not a trivial task, remember that the order of 
@@ -61,11 +75,15 @@ public class Peer {
             while (true) {
                 try {
                     String message = queue.take(); // blocks if queue is empty
-                    transactions.add(message); // For now, just add it to the end of transactions
+                    // Turn the string message back into a transaction
+
+
+
+                    mempool.add(Transaction.fromString(message, this)); // For now, just add it to the end of transactions
                     // Process the message
-                    System.out.println("Peer " + this.id + ": Transaction added -> " + message+" ==> Number of txs: "+transactions.size());
+                    System.out.println("Peer " + this.id + ": Transaction added -> " + message+" ==> Number of txs: "+mempool.size());
                     
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -83,8 +101,10 @@ public class Peer {
                     // Make a random transaction
                     int receiver = rand.nextInt(peers.length);
                     while(receiver==this.id) receiver = rand.nextInt(peers.length);
-                    int amount = rand.nextInt(1000000); // A better probability distribution makes more sense.
-                    this.broadcastToAllPeers("PAY "+amount+" TO "+receiver);
+                    int amount = rand.nextInt(1000000); // A better probability distribution makes more sense. Wallet check?
+                    //this.broadcastToAllPeers("PAY "+amount+" TO "+receiver);
+                    Transaction newTransaction = new Transaction(this.wallet.publicKey, Peer.peers[receiver].wallet.publicKey, amount, new ArrayList<TransactionInput>(), this);
+                    this.broadcastToAllPeers(newTransaction.toString());
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }                
@@ -141,4 +161,28 @@ public class Peer {
             }).start();
         }
     }
+
+
+
+
+
+    // Method to mine a block
+    public void mineBlock() {
+        // As an example, we'll just take all transactions from the mempool.
+        // In reality, you'd want to choose transactions based on some criteria,
+        // such as the transaction fee.
+
+        // Also, this does not handle the case where a block's size is limited,
+        // and the total size of all transactions in the mempool exceeds this limit.
+
+        //We will implement Merkle tree later
+
+        List<Transaction> transactionsToMine = new ArrayList<>(this.mempool);
+        this.mempool.clear();
+
+        // Add the transactions to a new block and add it to the blockchain
+        Block newBlock = new Block(blockchain.getLastBlock().hash, transactionsToMine);
+        this.blockchain.addBlock(newBlock);
+    }
+
 }
