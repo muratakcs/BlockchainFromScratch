@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.*;
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -66,6 +67,10 @@ public class Peer {
         return blockchain;
     }
 
+    public PublicKey getPublicKey() {
+        return wallet.publicKey; 
+    }
+
     // While the message queue has new messages, reads them and processes them
     // Here, processing is putting it into the transaction list
     // Beware that this is not a trivial task, remember that the order of 
@@ -81,7 +86,7 @@ public class Peer {
 
                     mempool.add(Transaction.fromString(message, this)); // For now, just add it to the end of transactions
                     // Process the message
-                    System.out.println("Peer " + this.id + ": Transaction added -> " + message+" ==> Number of txs: "+mempool.size());
+                    System.out.println("Peer " + this.id + ": Transaction added -> " + (message.substring(0,4)+"...")+" ==> Number of txs: "+mempool.size());
                     
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -104,6 +109,8 @@ public class Peer {
                     int amount = rand.nextInt(1000000); // A better probability distribution makes more sense. Wallet check?
                     //this.broadcastToAllPeers("PAY "+amount+" TO "+receiver);
                     Transaction newTransaction = new Transaction(this.wallet.publicKey, Peer.peers[receiver].wallet.publicKey, amount, new ArrayList<TransactionInput>(), this);
+                    System.out.println("Peer " + this.id + ": Transaction broadcasted -> ID:"+newTransaction.transactionId+" val:"+newTransaction.value);
+                    
                     this.broadcastToAllPeers(newTransaction.toString());
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -167,7 +174,7 @@ public class Peer {
 
 
     // Method to mine a block
-    public void mineBlock() {
+    /*public void mineBlock() {
         // As an example, we'll just take all transactions from the mempool.
         // In reality, you'd want to choose transactions based on some criteria,
         // such as the transaction fee.
@@ -181,8 +188,8 @@ public class Peer {
         this.mempool.clear();
 
         // Add the transactions to a new block and add it to the blockchain
-        Block newBlock = new Block(blockchain.getLastBlock().hash, transactionsToMine);
+        Block newBlock = new Block(blockchain.getLastBlock().hash, transactionsToMine, this);
         this.blockchain.addBlock(newBlock);
-    }
+    }*/
 
 }

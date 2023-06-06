@@ -3,14 +3,17 @@ import java.util.HashMap;
 
 public class Blockchain {
     
+    public Peer peer; //Referring to the maintainer of this copy of the blockchain
     public ArrayList<Block> blockchain = new ArrayList<Block>();
     public HashMap<String,TransactionOutput> UTXOs = new HashMap<String,TransactionOutput>(); 
-    public static int difficulty = 5;
+    public final int difficulty = 5;
     public static int minimumTransaction = 1;
+    public final int MININGREWARD = 2^10; // Mining reward will be 1024 at the beginning
+    public final int HALVINGPERIOD = 10; // After every 10 blocks added, mining reward will be halved
 
     // Add transactions to the blockchain
     public void addBlock(Block newBlock) {
-        newBlock.mineBlock(difficulty);
+        newBlock.mineBlock();
         blockchain.add(newBlock);
     }
     public Block getLastBlock() {
