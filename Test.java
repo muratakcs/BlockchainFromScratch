@@ -1,16 +1,26 @@
 //import java.util.Random;
 
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
+
 public class Test {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InvalidKeyException, NoSuchAlgorithmException, SignatureException {
 
         //Random rand = new Random(System.currentTimeMillis());
         
         // Creating peers.
         Peer.peers = new Peer[4];
+
         for(int i=0; i<4; i++) {
             Peer.peers[i] = new Peer();
-            Peer.peers[i].startServer();
+        }
+
+        Peer.peers[0].createGenesisBlock();
+
+        for(int i=0; i<4; i++) {
             Peer.peers[i].startConsumer();
+            Peer.peers[i].startServer();
             Peer.peers[i].startPeerTransactions();
         }
         

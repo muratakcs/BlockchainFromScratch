@@ -1,9 +1,5 @@
 import java.security.*;
 import java.util.*;
-import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
-//import java.security.spec.X509EncodedKeySpec;
-import java.math.BigInteger;
 import java.util.stream.Collectors;
 
 
@@ -24,46 +20,60 @@ class Transaction {
     public List<TransactionOutput> outputs = new ArrayList<TransactionOutput>();
 
 
+    // Constructor for creating a coinbase transaction (mining reward tx)
+    public Transaction(PublicKey to, int value, Peer p) throws NoSuchAlgorithmException {
+        this.peer = p;
+        this.sender = null; // There is no sender for a mining reward transaction
+        this.recipient = to;
+        this.value = value;
+        this.timeStamp = System.currentTimeMillis();
+        this.transactionId = calculateHash();
+
+        this.peer.wallet.arrangeFunds(to, value, null, outputs, this.transactionId);
+    }
 
     // Constructor to be used when peer is initially creating the transaction
-    public Transaction(PublicKey from, PublicKey to, int value, List<TransactionInput> inputs, Peer p) {
+    public Transaction(PublicKey from, PublicKey to, int value, Peer p) throws NoSuchAlgorithmException {
+        this.peer = p;
         this.sender = from;
         this.recipient = to;
         this.value = value;
-        this.inputs = inputs;
         this.timeStamp = System.currentTimeMillis();
-        this.peer = p;
+        this.transactionId = calculateHash();
+
+        this.peer.wallet.arrangeFunds(to, value, inputs, outputs, this.transactionId);
     }
 
     // Constructor to be used when it is an incoming transaction to be copied to our list
     public Transaction(String transactionId, PublicKey sender, PublicKey recipient, int value, long timeStamp, 
                    List<TransactionInput> inputs, List<TransactionOutput> outputs, Peer p) {
-        this.transactionId = transactionId;
+        this.peer = p;
         this.sender = sender;
         this.recipient = recipient;
         this.value = value;
         this.timeStamp = timeStamp;
+        this.transactionId = transactionId;
+        
         this.inputs = inputs;   //We may need to
         this.outputs = outputs; //clone these two??
-        this.peer = p;
     }
 
 
     // This Calculates the transaction hash 
-    public String calculateHash() {
+    public String calculateHash() throws NoSuchAlgorithmException {
         String dataToHash = "" + this.sender + this.recipient + this.value + this.timeStamp;
         
         // Add inputs to the hash
-        for (TransactionInput input : this.inputs) {
-            dataToHash += input.transactionOutputId;
-        }
+        //for (TransactionInput input : this.inputs) {
+        //    dataToHash += input.transactionOutputId;
+        //}
         
         // Add outputs to the hash
-        for (TransactionOutput output : this.outputs) {
-            dataToHash += output.id;
-        }
+        //for (TransactionOutput output : this.outputs) {
+        //    dataToHash += output.id;
+        //}
         
-        MessageDigest digest;
+        /*MessageDigest digest;
         byte[] hash = null;
         try {
             digest = MessageDigest.getInstance("SHA-256");
@@ -71,76 +81,58 @@ class Transaction {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-        return bytesToHex(hash);
+        return bytesToHex(hash);*/
+        return Wallet.generateHash(dataToHash);
     }
     
     
-    public static String bytesToHex(byte[] hash) {
+    /*public static String bytesToHex(byte[] hash) {
         BigInteger number = new BigInteger(1, hash);
         StringBuilder hexString = new StringBuilder(number.toString(16));
         while (hexString.length() < 32) {
             hexString.insert(0, '0');
         }
         return hexString.toString();
-    }
+    }*/
 
+    
+    
     // Prepare input for signing and call signature function
-    public void generateSignature(PrivateKey privateKey) {
-        String data = Wallet.getStringFromPublicKey(sender) + Wallet.getStringFromPublicKey(recipient) + Integer.toString(value) + Long.toString(timeStamp);
-        for (TransactionInput input : this.inputs) {
-            data += input.transactionOutputId;
-        }
-        for (TransactionOutput output : this.outputs) {
-            data += output.id;
-        }
-        signature = applyECDSASig(privateKey, data);        
-    }
-
-    // Sign the transaction
-    private byte[] applyECDSASig(PrivateKey privateKey, String input) {
-        Signature dsa;
-        byte[] output = new byte[0];
-        try {
-            //dsa = Signature.getInstance("ECDSA", "BC"); // This will probably not work
-            dsa = Signature.getInstance("SHA256withECDSA");
-            dsa.initSign(privateKey);
-            byte[] strByte = input.getBytes();
-            dsa.update(strByte);
-            byte[] realSig = dsa.sign();
-            output = realSig;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        return output;
+    public void generateSignature(PrivateKey privateKey) throws InvalidKeyException, NoSuchAlgorithmException, SignatureException {
+        // Prepare data
+        String data = Wallet.getStringFromPublicKey(sender)
+                    + Wallet.getStringFromPublicKey(recipient)
+                    + Integer.toString(value) 
+                    + Long.toString(timeStamp);
+        for (TransactionInput input : this.inputs)      { data += input.transactionOutputId; }
+        for (TransactionOutput output : this.outputs)   { data += output.id; }
+        
+        //Sign
+        signature = peer.wallet.sign(data);
+        //Now, the signature for this transaction is ready.
     }
 
     
+
+    
     // Prepare the input for signature verification
-    public boolean verifySignature() {
-        String data = Wallet.getStringFromPublicKey(sender) + Wallet.getStringFromPublicKey(recipient) + Integer.toString(value) + Long.toString(timeStamp);
-        for (TransactionInput input : this.inputs) {
-            data += input.transactionOutputId;
-        }
-        for (TransactionOutput output : this.outputs) {
-            data += output.id;
-        }
-        return verifyECDSASig(Wallet.getStringFromPublicKey(sender), data, signature);      
+    public boolean verifySignature() throws InvalidKeyException, NoSuchAlgorithmException, SignatureException {
+        //Prepare data
+        String data = Wallet.getStringFromPublicKey(sender) 
+                    + Wallet.getStringFromPublicKey(recipient)
+                    + Integer.toString(value) 
+                    + Long.toString(timeStamp);
+        for (TransactionInput input : this.inputs) { data += input.transactionOutputId; }
+        for (TransactionOutput output : this.outputs) { data += output.id; }
+
+        //Verify
+        return peer.wallet.verify(sender,data,signature);
+        //return verifyECDSASig(Wallet.getStringFromPublicKey(sender), data, signature);      
     }
 
-    // Verify the digital signature on the data
-    private boolean verifyECDSASig(String publicKey, String data, byte[] signature) {
-        try {
-            //Signature ecdsaVerify = Signature.getInstance("ECDSA", "BC");
-            Signature ecdsaVerify = Signature.getInstance("SHA256withECDSA");
-            ecdsaVerify.initVerify(Wallet.getPublicKeyFromString(publicKey));
-            ecdsaVerify.update(data.getBytes());
-            return ecdsaVerify.verify(signature);
-        }catch(Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+    
 
-    public boolean processTransaction() {
+    public boolean processTransaction() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         // If the signature is not valid, reject the transaction
         if(!verifySignature()) {
             System.out.println("!!! Transaction Signature failed to verify.");
@@ -160,7 +152,7 @@ class Transaction {
 
         // Generate transaction outputs:
         int leftOver = getInputsValue() - value; //get value of inputs then the left over change:
-        transactionId = calculateHash();
+//        transactionId = calculateHash();
         outputs.add(new TransactionOutput(this.recipient, value, transactionId)); //send value to recipient
         outputs.add(new TransactionOutput(this.sender, leftOver, transactionId)); //send the left over 'change' back to sender
         
@@ -219,7 +211,7 @@ class Transaction {
         String senderString = Base64.getEncoder().encodeToString(sender.getEncoded());
         String recipientString = Base64.getEncoder().encodeToString(recipient.getEncoded());
     
-        return transactionId + ";" + senderString + ";" + recipientString + ";" + value + ";" + inputString + ";" + outputString;
+        return transactionId + ";" + senderString + ";" + recipientString + ";" + value + ";"  + timeStamp + ";" + inputString + ";" + outputString;
     }
     
 
@@ -229,18 +221,26 @@ class Transaction {
         PublicKey senderKey = Wallet.getPublicKeyFromString(parts[1]);
         PublicKey recipientKey = Wallet.getPublicKeyFromString(parts[2]);
         
-        Transaction t = new Transaction(senderKey, recipientKey, Integer.parseInt(parts[3]), new ArrayList<>(), peer);
-        t.transactionId = parts[0];
-    
-        if (parts.length > 4 && !parts[4].isEmpty()) {
-            for (String input : parts[4].split(",")) {
+        Transaction t = new Transaction(parts[0],
+                                        senderKey,
+                                        recipientKey,
+                                        Integer.parseInt(parts[3]),
+                                        Long.parseLong(parts[4]),
+                                        new ArrayList<>(),
+                                        new ArrayList<>(),
+                                        peer);
+        
+        int inpindex=5;
+        int outindex=6;
+        if (parts.length > inpindex && !parts[inpindex].isEmpty()) {
+            for (String input : parts[inpindex].split(",")) {
                 String[] inputParts = input.split(":");
                 t.inputs.add(new TransactionInput(inputParts[0]));
             }
         }
     
-        if (parts.length > 5 && !parts[5].isEmpty()) {
-                for (String output : parts[5].split(",")) {
+        if (parts.length > outindex && !parts[outindex].isEmpty()) {
+                for (String output : parts[outindex].split(",")) {
                 String[] outputParts = output.split(":");
                 t.outputs.add(new TransactionOutput(t.recipient, Integer.parseInt(outputParts[1]), t.transactionId));
             }

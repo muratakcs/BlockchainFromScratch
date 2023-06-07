@@ -1,15 +1,27 @@
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Blockchain {
     
     public Peer peer; //Referring to the maintainer of this copy of the blockchain
-    public ArrayList<Block> blockchain = new ArrayList<Block>();
-    public HashMap<String,TransactionOutput> UTXOs = new HashMap<String,TransactionOutput>(); 
+    public ArrayList<Block> blockchain;
+    public ArrayList<Transaction> mempool; //https://www.btcturk.com/bilgi-platformu/bitcoin-mempool-nedir/
+    public HashMap<String,TransactionOutput> UTXOs; 
     public final int difficulty = 5;
     public static int minimumTransaction = 1;
     public final int MININGREWARD = 2^10; // Mining reward will be 1024 at the beginning
     public final int HALVINGPERIOD = 10; // After every 10 blocks added, mining reward will be halved
+
+
+    public Blockchain(Peer p) {
+        peer = p;
+        mempool = new ArrayList<>();
+        UTXOs = new HashMap<String,TransactionOutput>();
+        blockchain = new ArrayList<Block>();
+    }
 
     // Add transactions to the blockchain
     public void addBlock(Block newBlock) {
@@ -22,7 +34,7 @@ public class Blockchain {
     
 
     // Check if the blockchain is valid
-    public Boolean isChainValid() {
+    public Boolean isChainValid() throws InvalidKeyException, NoSuchAlgorithmException, SignatureException {
         Block currentBlock; 
         Block previousBlock;
         String hashTarget = new String(new char[difficulty]).replace('\0', '0');

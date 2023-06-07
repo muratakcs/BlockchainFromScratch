@@ -1,3 +1,4 @@
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -5,16 +6,162 @@ import java.util.*;
 import java.util.Base64;
 
 public class Wallet {
-    public PrivateKey privateKey;   // Private key associated with the wallet
+    private PrivateKey privateKey;   // Private key associated with the wallet
     public PublicKey publicKey;     // Public key associated with the wallet
-    public int peerid;              // The id of the peer that has this wallet
+    public Peer peer;              // The id of the peer that has this wallet
     public HashMap<String,TransactionOutput> UTXOs; // Unspent txs available for this wallet to spend
 
-    public Wallet(int id){
-        peerid = id;
+    public Wallet(Peer p){
+        peer = p;
         generateKeyPair();
         UTXOs = new HashMap<String,TransactionOutput>(); // Only UTXOs owned by this wallet
     }
+
+    
+
+    // This method calculates the balance of this wallet while
+    // also adding incoming UTXOs of this wallet to UTXO list 
+    public int getBalance() {
+        int total = 0;	
+        for (Map.Entry<String, TransactionOutput> item: peer.blockchain.UTXOs.entrySet()){
+            TransactionOutput UTXO = item.getValue();
+            if(UTXO.belongsTo(publicKey)) { // If output belongs to me (if coins belong to me)
+                UTXOs.put(UTXO.id,UTXO); // Add it to our list of unspent transactions
+                total += UTXO.value;
+            }
+        }  
+        return total;
+    }
+
+    // // Prepare input for signing and call signature function
+    // public byte[] sign(String data) {
+    //     return applyECDSASig(privateKey, data);        
+    // }
+
+    // // Sign the transaction
+    // private byte[] applyECDSASig(PrivateKey privateKey, String input) {
+    //     Signature dsa;
+    //     byte[] output = new byte[0];
+    //     try {
+    //         //dsa = Signature.getInstance("ECDSA", "BC"); // This will probably not work
+    //         dsa = Signature.getInstance("SHA256withECDSA");
+    //         dsa.initSign(privateKey);
+    //         byte[] strByte = input.getBytes();
+    //         dsa.update(strByte);
+    //         byte[] realSig = dsa.sign();
+    //         output = realSig;
+    //     } catch (Exception e) {
+    //         throw new RuntimeException(e);
+    //     }
+    //     return output;
+    // }
+
+
+
+
+
+    // method to sign a message using the private key
+    public byte[] sign(String message) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+        Signature signature = Signature.getInstance("SHA256withRSA");
+        signature.initSign(this.privateKey);
+        signature.update(message.getBytes());
+        return signature.sign();
+    }
+
+
+
+
+
+    // public boolean verify(PublicKey publicKey, String data, byte[] signature) {
+    //     return verifyECDSASig(publicKey, data, signature);
+    // }
+
+    // Verify the digital signature on the data
+    // private boolean verifyECDSASig(PublicKey publicKey, String data, byte[] signature) {
+    //     try {
+    //         //Signature ecdsaVerify = Signature.getInstance("ECDSA", "BC");
+    //         Signature ecdsaVerify = Signature.getInstance("SHA256withECDSA");
+    //         ecdsaVerify.initVerify(publicKey);
+    //         ecdsaVerify.update(data.getBytes());
+    //         return ecdsaVerify.verify(signature);
+    //     }catch(Exception e) {
+    //         throw new RuntimeException(e);
+    //     }
+    // }
+
+    // method to verify a message using the signature and the public key
+    public boolean verify(PublicKey publicKey, String data, byte[] signature) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+        Signature s = Signature.getInstance("SHA256withRSA");
+        s.initVerify(publicKey);
+        s.update(data.getBytes());
+        return s.verify(signature);
+    }
+
+
+
+    // This method arranges Tx inputs and outputs in the Tx so that the amount will
+    // be sent to the receiver and the change will be sent back to the sender
+    public void arrangeFunds(PublicKey recipient, int value, List<TransactionInput> inputs, List<TransactionOutput> outputs, String txid) throws NoSuchAlgorithmException {
+
+        // First, gather UTXOs and balance and check whether we have enough funds to send
+        if(getBalance() < value) { 
+            System.out.println("!!! Not Enough funds to send transaction. Transaction Discarded.");
+            //return null;
+        }
+
+        // Then, find enough transaction inputs to afford the value
+        int total = 0;
+        for (Map.Entry<String, TransactionOutput> item: UTXOs.entrySet()){
+            TransactionOutput UTXO = item.getValue();
+            total += UTXO.value;
+            inputs.add(new TransactionInput(UTXO.id));
+            if(total >= value) break; // When we have enough of the UTXOs to afford value, stop
+        }
+
+        int leftOver = total - value; //get value of inputs then the left over change:
+        outputs.add(new TransactionOutput(recipient, value, txid)); //send value to recipient
+        outputs.add(new TransactionOutput(publicKey, leftOver, txid)); //send the left over 'change' back to sender
+        
+        // If a UTXO is spent with this tx, remove it from UTXOs list
+        for(TransactionInput input: inputs){
+            UTXOs.remove(input.transactionOutputId);
+        }
+    }
+
+
+    // This method arranges Tx outputs for a coinbase transaction
+    // Just put a tx output and that's it.
+    public void arrangeFunds(PublicKey recipient, int value, List<TransactionOutput> outputs, String txid) throws NoSuchAlgorithmException {
+        outputs.add(new TransactionOutput(recipient, value, txid)); //send value to recipient
+    }
+
+
+
+
+
+    // Return the private key of this wallet
+    public String getPrivateKeyString() {
+        return Base64.getEncoder().encodeToString(this.privateKey.getEncoded());
+    }
+
+    // Return the public key of this wallet
+    public String getPublicKeyString() {
+        return Base64.getEncoder().encodeToString(this.publicKey.getEncoded());
+    }
+
+
+
+
+    // CRYPTOGRAPHIC OPERATIONS
+
+
+    // method to generate hash of a string
+    public static String generateHash(String data) throws NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hash = digest.digest(data.getBytes(StandardCharsets.UTF_8));
+        return Base64.getEncoder().encodeToString(hash);
+    }
+    
 
     public void generateKeyPair() {
         try {
@@ -26,63 +173,6 @@ public class Wallet {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    // This method calculates the balance of this wallet while
-    // also adding incoming UTXOs of this wallet to UTXO list 
-    public int getBalance() {
-        int total = 0;	
-        for (Map.Entry<String, TransactionOutput> item: Peer.peers[peerid].blockchain.UTXOs.entrySet()){
-            TransactionOutput UTXO = item.getValue();
-            if(UTXO.isMine(publicKey)) { // If output belongs to me (if coins belong to me)
-                UTXOs.put(UTXO.id,UTXO); // Add it to our list of unspent transactions
-                total += UTXO.value;
-            }
-        }  
-        return total;
-    }
-
-
-    public Transaction sendFunds(PublicKey _recipient, int value ) {
-
-        // First, gather UTXOs and balance and check whether we have enough funds to send
-        if(getBalance() < value) { 
-            System.out.println("!!! Not Enough funds to send transaction. Transaction Discarded.");
-            return null;
-        }
-
-        // Create array list of Tx inputs
-        List<TransactionInput> inputs = new ArrayList<>();
-    
-        int total = 0;
-        for (Map.Entry<String, TransactionOutput> item: UTXOs.entrySet()){
-            TransactionOutput UTXO = item.getValue();
-            total += UTXO.value;
-            inputs.add(new TransactionInput(UTXO.id));
-            if(total > value) break; // When we have enough of the UTXOs to afford value, stop
-        }
-        
-        // Prepare the transaction
-        Transaction newTransaction = new Transaction(publicKey, _recipient, value, inputs, Peer.peers[peerid]);
-        
-        // Sign the new transaction with our private key
-        newTransaction.generateSignature(privateKey);
-        
-        // If a UTXO is spent with this tx, remove it from UTXOs list
-        for(TransactionInput input: inputs){
-            UTXOs.remove(input.transactionOutputId);
-        }
-        return newTransaction;
-    }
-
-    // Return the private key of this wallet
-    public String getPrivateKeyString() {
-        return Base64.getEncoder().encodeToString(this.privateKey.getEncoded());
-    }
-
-    // Return the public key of this wallet
-    public String getPublicKeyString() {
-        return Base64.getEncoder().encodeToString(this.publicKey.getEncoded());
     }
 
 

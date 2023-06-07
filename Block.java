@@ -1,3 +1,5 @@
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.util.*;
 
 public class Block {
@@ -11,16 +13,28 @@ public class Block {
     public long timeStamp; 
     public int nonce;
     
+    public Block(PublicKey recipient) throws NoSuchAlgorithmException {
+        this.previousHash = "0";
+        Transaction coinbase = new Transaction(recipient, blockchain.MININGREWARD, blockchain.peer);
+        coinbase.transactionId = "coinbase";
+        this.transactions.add(coinbase);
+        this.timeStamp = System.currentTimeMillis();
+        this.hash = calculateHash(); // Calculate the hash of the genesis block.
+    }
+
  
     // Block Constructor.
-    public Block(String previousHash, List<Transaction> transactions, int index, Blockchain blockchain) {
+    public Block(String previousHash, List<Transaction> transactions, int index, Blockchain blockchain) throws NoSuchAlgorithmException {
         this.previousHash = previousHash;
         this.index = index;
         this.transactions = transactions;
         this.blockchain = blockchain;
 
         // Create mining reward transaction
-        Transaction miningReward = new Transaction(null, this.blockchain.peer.getPublicKey(), (this.blockchain.MININGREWARD/2^(index/this.blockchain.HALVINGPERIOD)), null, this.blockchain.peer);
+        Transaction miningReward = new Transaction( null,
+                                                    this.blockchain.peer.getPublicKey(),
+                                                    this.blockchain.MININGREWARD/(2^(index/this.blockchain.HALVINGPERIOD)),
+                                                    this.blockchain.peer);
 
         // Add mining reward as the first transaction
         this.transactions.add(0, miningReward);
