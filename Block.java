@@ -13,7 +13,9 @@ public class Block {
     public long timeStamp; 
     public int nonce;
     
-    public Block(PublicKey recipient) throws NoSuchAlgorithmException {
+    // Constructor for genesis block
+    public Block(PublicKey recipient, Blockchain bc) throws NoSuchAlgorithmException {
+        this.blockchain = bc;
         this.previousHash = "0";
         Transaction coinbase = new Transaction(recipient, blockchain.MININGREWARD, blockchain.peer);
         coinbase.transactionId = "coinbase";

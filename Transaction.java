@@ -29,7 +29,7 @@ class Transaction {
         this.timeStamp = System.currentTimeMillis();
         this.transactionId = calculateHash();
 
-        this.peer.wallet.arrangeFunds(to, value, null, outputs, this.transactionId);
+        this.peer.wallet.arrangeFunds(to, value, outputs, this.transactionId);
     }
 
     // Constructor to be used when peer is initially creating the transaction

@@ -11,13 +11,17 @@ public class Test {
         
         // Creating peers.
         Peer.peers = new Peer[4];
-
         for(int i=0; i<4; i++) {
             Peer.peers[i] = new Peer();
         }
 
+        // One of the peers creates the genesis block
+        // Here, peers[0] is our Satoshi Nakamoto...
         Peer.peers[0].createGenesisBlock();
 
+        // Now, our blockchain is ready for new blocks being added
+        // so all peers start sending transactions back and forth,
+        // mining, etc.
         for(int i=0; i<4; i++) {
             Peer.peers[i].startConsumer();
             Peer.peers[i].startServer();

@@ -118,8 +118,9 @@ public class Peer {
         List<Transaction> transactions = new ArrayList<>();
         transactions.add(coinbase);
 
+        this.blockchain = new Blockchain(this);
         // Create the genesis block. We'll set previousHash as "0" because there's no previous block.
-        Block genesisBlock = new Block(wallet.publicKey);
+        Block genesisBlock = new Block(wallet.publicKey, this.blockchain);
 
         // Add it to the blockchain
         this.blockchain.addBlock(genesisBlock);
@@ -127,6 +128,7 @@ public class Peer {
         // Add the output transaction to UTXOs
         TransactionOutput output = new TransactionOutput(coinbase.recipient, coinbase.value, coinbase.transactionId);
         this.blockchain.UTXOs.put(output.id, output);
+        System.out.println("Genesis block created.");
     }
 
     /////////////////////////////////////////////////////////////////////////////////
