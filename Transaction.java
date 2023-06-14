@@ -5,7 +5,8 @@ import java.util.stream.Collectors;
 
 
 class Transaction {
-    public Peer peer; // Whose copy of this transaction? Normally we won't need this but for the simulation we need it 
+    public Peer peer;   // Who initiated this transaction?
+                        //Normally we wouldn't need this but for the simulation we do 
     public String transactionId; //Contains a hash of transaction
     public PublicKey sender; //Sender's address/public key.
     public PublicKey recipient; //Recipient's address/public key.

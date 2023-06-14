@@ -87,17 +87,21 @@ public class Peer {
 
                     // Randomly choose an amount. Slightly more than balance is possible
                     // so that we can check whether frauds are caught or not.
-                    int amount = rand.nextInt((int)(this.wallet.getBalance()*1.2+10));
+                    int bal = this.wallet.getBalance();
+                    if(bal>0) {
+                        int amount = rand.nextInt((int)(bal*1.2));
 
-                    Transaction newTx = new Transaction(this.wallet.publicKey, 
-                                                        Peer.peers[receiver].wallet.publicKey,
-                                                        amount,
-                                                        this); // If we send this, why also send pubkey?
-                    
+                        Transaction newTx = new Transaction(this.wallet.publicKey, 
+                                                            Peer.peers[receiver].wallet.publicKey,
+                                                            amount,
+                                                            this); // If we send this, why also send pubkey?
+                        
 
-                    System.out.println("Peer " + this.id +" t:"+ newTx.timeStamp+ ": Transaction broadcasted -> ID:"+newTx.transactionId+" val:"+newTx.value);
+                        System.out.println("Peer " + this.id +" t:"+ newTx.timeStamp+ ": Transaction broadcasted -> ID:"+newTx.transactionId+" val:"+newTx.value);
+                        
+                        this.broadcastToAllPeers(newTx.toString());
+                    }
                     
-                    this.broadcastToAllPeers(newTx.toString());
                 } catch (InterruptedException | NoSuchAlgorithmException e) {
                     e.printStackTrace();
                 }                
