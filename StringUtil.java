@@ -21,27 +21,7 @@ public class StringUtil {
         }
     }
 
-    // Calculates the Merkle root of all given transactions
-    // Normally, the length of transactions must be a power of 2 for this to work properly
-    // Otherwise the last element and possibly some other elements may not affect the root
-    public static String getMerkleRoot(List<Transaction> transactions) {
-        int count = transactions.size();
-        ArrayList<String> previousTreeLayer = new ArrayList<String>();
-        for(Transaction transaction : transactions) {
-            previousTreeLayer.add(transaction.transactionId);
-        }
-        ArrayList<String> treeLayer = previousTreeLayer;
-        while(count > 1) {
-            treeLayer = new ArrayList<String>();
-            for(int i=1; i < previousTreeLayer.size(); i+=2) {
-                treeLayer.add(applySha256(previousTreeLayer.get(i-1) + previousTreeLayer.get(i)));
-            }
-            count = treeLayer.size();
-            previousTreeLayer = treeLayer;
-        }
-        String merkleRoot = (treeLayer.size() == 1) ? treeLayer.get(0) : "";
-        return merkleRoot;
-    }
+    
 
     // This method simply creates a string of zeros the length of which is equal to the difficulty
     public static String getDificultyString(int difficulty) {
