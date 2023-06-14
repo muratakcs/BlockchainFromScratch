@@ -57,10 +57,11 @@ public class Blockchain {
         
         // Create the genesis block. We'll set previousHash as "0" because there's no previous block.
         Block genesisBlock = new Block(this.peer.wallet.publicKey, this);
+        
 
         // Add it to the blockchain
-        addBlock(genesisBlock);
-        
+        //addBlock(genesisBlock);
+        blockchain.add(genesisBlock);
         // Add the output transaction to UTXOs
         TransactionOutput output = new TransactionOutput(coinbase.recipient, coinbase.value, coinbase.transactionId);
         this.UTXOs.put(output.id, output);

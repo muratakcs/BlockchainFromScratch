@@ -20,7 +20,10 @@ public class Block {
         Transaction coinbase = new Transaction(recipient, blockchain.MININGREWARD, blockchain.peer);
         coinbase.transactionId = "coinbase";
         this.transactions.add(coinbase);
-        this.timeStamp = System.currentTimeMillis();
+        this.merkleRoot="0";
+        this.timeStamp = 0;
+        this.index=0;
+        this.nonce=0;
         this.hash = calculateHash(); // Calculate the hash of the genesis block.
     }
 
