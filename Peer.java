@@ -100,36 +100,7 @@ public class Peer {
     }
 
 
-    public void createGenesisBlock() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-        // Create a coinbase transaction for the block reward. For simplicity, we'll
-        // pretend this peer's wallet address is the recipient.
-        // Since this is a simulation, we can use this peer's public key.
-        // In reality, this would be a more complex transaction.
-        Transaction coinbase = new Transaction(this.wallet.publicKey, blockchain.MININGREWARD, this);
-
-        // Manually set a transaction ID
-        coinbase.transactionId = "coinbase";
-        
-        // Manually sign the coinbase transaction
-        String dataToSign = Wallet.getStringFromPublicKey(coinbase.recipient) + Integer.toString(coinbase.value);
-        coinbase.signature = this.wallet.sign(dataToSign);
-
-        // Create a list of transactions and add the coinbase transaction
-        List<Transaction> transactions = new ArrayList<>();
-        transactions.add(coinbase);
-
-        this.blockchain = new Blockchain(this);
-        // Create the genesis block. We'll set previousHash as "0" because there's no previous block.
-        Block genesisBlock = new Block(wallet.publicKey, this.blockchain);
-
-        // Add it to the blockchain
-        this.blockchain.addBlock(genesisBlock);
-        
-        // Add the output transaction to UTXOs
-        TransactionOutput output = new TransactionOutput(coinbase.recipient, coinbase.value, coinbase.transactionId);
-        this.blockchain.UTXOs.put(output.id, output);
-        System.out.println("Genesis block created.");
-    }
+    
 
     /////////////////////////////////////////////////////////////////////////////////
     ///////////////////////// BLOCKCHAIN INTERACTION METHODS ////////////////////////

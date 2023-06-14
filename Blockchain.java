@@ -3,6 +3,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class Blockchain {
     
@@ -32,6 +33,37 @@ public class Blockchain {
         return blockchain.get(blockchain.size()-1);
     }
     
+    public void createGenesisBlock() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+        // Create a coinbase transaction for the block reward. For simplicity, we'll
+        // pretend this peer's wallet address is the recipient.
+        // Since this is a simulation, we can use this peer's public key.
+        // In reality, this would be a more complex transaction.
+        Transaction coinbase = new Transaction(this.peer.wallet.publicKey, this.MININGREWARD, this.peer);
+
+        // Manually set a transaction ID
+        coinbase.transactionId = "coinbase";
+        
+        // Manually sign the coinbase transaction
+        String dataToSign = Wallet.getStringFromPublicKey(coinbase.recipient) + Integer.toString(coinbase.value);
+        coinbase.signature = this.peer.wallet.sign(dataToSign);
+
+        // Create a list of transactions and add the coinbase transaction
+        List<Transaction> transactions = new ArrayList<>();
+        transactions.add(coinbase);
+
+        //this.blockchain = new Blockchain(this);
+        
+        // Create the genesis block. We'll set previousHash as "0" because there's no previous block.
+        Block genesisBlock = new Block(this.peer.wallet.publicKey, this);
+
+        // Add it to the blockchain
+        addBlock(genesisBlock);
+        
+        // Add the output transaction to UTXOs
+        TransactionOutput output = new TransactionOutput(coinbase.recipient, coinbase.value, coinbase.transactionId);
+        this.UTXOs.put(output.id, output);
+        System.out.println("Genesis block created.");
+    }
 
     // Check if the blockchain is valid
     public Boolean isChainValid() throws InvalidKeyException, NoSuchAlgorithmException, SignatureException {
