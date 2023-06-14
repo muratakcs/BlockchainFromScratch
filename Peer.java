@@ -15,9 +15,17 @@ public class Peer {
     public static Random rand;
     
     private int id;
-    private static int countPeers = 0;
+    private static int countPeers = 0; //to assign an automatic id
 
-    public Blockchain blockchain;  // This is this particular peer's copy of the blockchain
+    //Every peer has its own copy of the blockchain
+    //Possibly can occasionally become a little different from others
+    //but must eventually become the same as all others
+    //which is the whole idea of the blockchain
+    public Blockchain blockchain;
+
+    //Every peer has a wallet.
+    //In fact, a peer can have multiple wallets
+    //But for this application, to keep it simple, we implement only one
     protected Wallet wallet;      // This is the wallet of this peer that holds the keys and UTXOs to be used later
     
 
