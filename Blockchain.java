@@ -13,7 +13,7 @@ public class Blockchain {
     public HashMap<String,TransactionOutput> UTXOs; 
     public final int difficulty = 5;
     public static int minimumTransaction = 1;
-    public final int MININGREWARD = 2^10; // Mining reward will be 1024 at the beginning
+    public int MININGREWARD = 2^10; // Mining reward will be 1024 at the beginning
     public final int HALVINGPERIOD = 10; // After every 10 blocks added, mining reward will be halved
 
 
@@ -29,6 +29,7 @@ public class Blockchain {
     public void addBlock(Block newBlock) {
         newBlock.mineBlock();
         blockchain.add(newBlock);
+        if(blockchain.size()%HALVINGPERIOD == 0) MININGREWARD/=2;
     }
     public Block getLastBlock() {
         return blockchain.get(blockchain.size()-1);
@@ -45,8 +46,8 @@ public class Blockchain {
         coinbase.transactionId = "coinbase";
         
         // Manually sign the coinbase transaction
-        String dataToSign = Wallet.getStringFromPublicKey(coinbase.recipient) + Integer.toString(coinbase.value);
-        coinbase.signature = this.peer.wallet.sign(dataToSign);
+        //String dataToSign = Wallet.getStringFromPublicKey(coinbase.recipient) + Integer.toString(coinbase.value);
+        //coinbase.signature = this.peer.wallet.sign(dataToSign);
 
         // Create a list of transactions and add the coinbase transaction
         List<Transaction> transactions = new ArrayList<>();

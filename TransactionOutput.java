@@ -18,6 +18,7 @@ class TransactionOutput {
     
     //Calculates the hash by using recipient + value + parentTransactionId
     public String calculateHash() throws NoSuchAlgorithmException {
+        // In fact, these three may not be unique!!! <- Problem to be solved...
         String dataToHash = "" + this.recipient + this.value + this.parentTransactionId;
         return StringUtil.generateHash(dataToHash);
     }
