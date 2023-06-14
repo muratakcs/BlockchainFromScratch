@@ -42,7 +42,7 @@ public class Block {
         this.transactions.add(0, miningReward);
 
         // compute merkle root
-        this.merkleRoot = StringUtil.getMerkleRoot(transactions);
+        this.merkleRoot = getMerkleRoot();
 
         // Take the timestamp just before taking the hash
         this.timeStamp = new Date().getTime();
@@ -71,6 +71,29 @@ public class Block {
             this.hash = calculateHash();
         }
         System.out.println("Block Mined!!! : " + this.hash);
+    }
+
+
+    // Calculates the Merkle root of all given transactions
+    // Normally, the length of transactions must be a power of 2 for this to work properly
+    // Otherwise the last element and possibly some other elements may not affect the root
+    public String getMerkleRoot() {
+        int count = transactions.size();
+        ArrayList<String> previousTreeLayer = new ArrayList<String>();
+        for(Transaction transaction : transactions) {
+            previousTreeLayer.add(transaction.transactionId);
+        }
+        ArrayList<String> treeLayer = previousTreeLayer;
+        while(count > 1) {
+            treeLayer = new ArrayList<String>();
+            for(int i=1; i < previousTreeLayer.size(); i+=2) {
+                treeLayer.add(StringUtil.applySha256(previousTreeLayer.get(i-1) + previousTreeLayer.get(i)));
+            }
+            count = treeLayer.size();
+            previousTreeLayer = treeLayer;
+        }
+        String merkleRoot = (treeLayer.size() == 1) ? treeLayer.get(0) : "";
+        return merkleRoot;
     }
 
     //Add transactions to this block
