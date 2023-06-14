@@ -65,7 +65,7 @@ public class Blockchain {
         // Add the output transaction to UTXOs
         TransactionOutput output = new TransactionOutput(coinbase.recipient, coinbase.value, coinbase.transactionId);
         this.UTXOs.put(output.id, output);
-        System.out.println("Genesis block created.");
+        System.out.println("Peer"+this.peer.id+"Genesis block created.");
     }
 
     // Check if the blockchain is valid

@@ -127,6 +127,7 @@ class Transaction {
         for (TransactionOutput output : this.outputs) { data += output.id; }
 
         //Verify
+        if(this.sender==null) return true; //coinbase transaction => no signature at all
         return peer.wallet.verify(sender,data,signature);
         //return verifyECDSASig(Wallet.getStringFromPublicKey(sender), data, signature);      
     }
@@ -203,25 +204,26 @@ class Transaction {
     // Converts the transaction into a delimited string.
     public String toString() {
         String inputString = inputs.stream()
-            .map(i -> i.transactionOutputId + ":" + i.UTXO.value)
-            .collect(Collectors.joining(","));
+        .filter(i -> i.UTXO != null)
+        .map(i -> i.transactionOutputId + ":" + i.UTXO.value)
+        .collect(Collectors.joining(","));
         String outputString = outputs.stream()
             .map(o -> o.id + ":" + o.value)
             .collect(Collectors.joining(","));
-    
-        String senderString = Base64.getEncoder().encodeToString(sender.getEncoded());
+
+        String senderString = sender == null ? "COINBASE" : Base64.getEncoder().encodeToString(sender.getEncoded());
         String recipientString = Base64.getEncoder().encodeToString(recipient.getEncoded());
-    
+
         return transactionId + ";" + senderString + ";" + recipientString + ";" + value + ";"  + timeStamp + ";" + inputString + ";" + outputString;
     }
-    
+
 
     // Reconstructs the transaction from a delimited string.
     public static Transaction fromString(String s, Peer peer) throws NumberFormatException, Exception {
         String[] parts = s.split(";");
-        PublicKey senderKey = Wallet.getPublicKeyFromString(parts[1]);
+        PublicKey senderKey = parts[1].equals("COINBASE") ? null : Wallet.getPublicKeyFromString(parts[1]);
         PublicKey recipientKey = Wallet.getPublicKeyFromString(parts[2]);
-        
+
         Transaction t = new Transaction(parts[0],
                                         senderKey,
                                         recipientKey,
@@ -230,7 +232,7 @@ class Transaction {
                                         new ArrayList<>(),
                                         new ArrayList<>(),
                                         peer);
-        
+
         int inpindex=5;
         int outindex=6;
         if (parts.length > inpindex && !parts[inpindex].isEmpty()) {
@@ -239,15 +241,14 @@ class Transaction {
                 t.inputs.add(new TransactionInput(inputParts[0]));
             }
         }
-    
+
         if (parts.length > outindex && !parts[outindex].isEmpty()) {
-                for (String output : parts[outindex].split(",")) {
+            for (String output : parts[outindex].split(",")) {
                 String[] outputParts = output.split(":");
                 t.outputs.add(new TransactionOutput(t.recipient, Integer.parseInt(outputParts[1]), t.transactionId));
             }
         }
-    
+
         return t;
     }
-
 }
