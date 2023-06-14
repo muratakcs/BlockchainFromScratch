@@ -17,7 +17,8 @@ public class Test {
 
         // One of the peers creates the genesis block
         // Here, peers[0] is our Satoshi Nakamoto...
-        Peer.peers[0].blockchain.createGenesisBlock();
+        // Already run automatically now when the bc is created.
+        //Peer.peers[0].blockchain.createGenesisBlock();
 
         // Now, our blockchain is ready for new blocks being added
         // so all peers start sending transactions back and forth,

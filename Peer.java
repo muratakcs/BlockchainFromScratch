@@ -1,7 +1,9 @@
 import java.io.*;
 import java.net.*;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.security.SignatureException;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -27,7 +29,7 @@ public class Peer {
     
     // Creates a peer, assigns the next available id, initializes random generator
     // Initializes transactions list and starts the server socket
-    public Peer() {
+    public Peer() throws InvalidKeyException, NoSuchAlgorithmException, SignatureException {
         id = countPeers++;
         queue = new LinkedBlockingQueue<>();
         rand = new Random(System.currentTimeMillis());

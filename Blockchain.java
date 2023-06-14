@@ -17,11 +17,12 @@ public class Blockchain {
     public final int HALVINGPERIOD = 10; // After every 10 blocks added, mining reward will be halved
 
 
-    public Blockchain(Peer p) {
+    public Blockchain(Peer p) throws InvalidKeyException, NoSuchAlgorithmException, SignatureException {
         peer = p;
         mempool = new ArrayList<>();
         UTXOs = new HashMap<String,TransactionOutput>();
         blockchain = new ArrayList<Block>();
+        createGenesisBlock();
     }
 
     // Add transactions to the blockchain
