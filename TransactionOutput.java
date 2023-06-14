@@ -19,7 +19,7 @@ class TransactionOutput {
     //Calculates the hash by using recipient + value + parentTransactionId
     public String calculateHash() throws NoSuchAlgorithmException {
         String dataToHash = "" + this.recipient + this.value + this.parentTransactionId;
-        return Wallet.generateHash(dataToHash);
+        return StringUtil.generateHash(dataToHash);
     }
 
     // Finds out whether a TXO belongs to a particular public key

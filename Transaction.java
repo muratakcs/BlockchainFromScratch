@@ -82,7 +82,7 @@ class Transaction {
             e.printStackTrace();
         }
         return bytesToHex(hash);*/
-        return Wallet.generateHash(dataToHash);
+        return StringUtil.generateHash(dataToHash);
     }
     
     
