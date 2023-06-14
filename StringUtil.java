@@ -1,9 +1,8 @@
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.List;
 
 public class StringUtil {
 
+    // Gets a string and returns SHA256 of it.
     public static String applySha256(String input){
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");	        
@@ -21,31 +20,9 @@ public class StringUtil {
         }
     }
 
-    
-
-    // This method simply creates a string of zeros the length of which is equal to the difficulty
+    // Creates a string of zeros of length difficulty.
     public static String getDificultyString(int difficulty) {
         return new String(new char[difficulty]).replace('\0', '0');
     }
-
-    /*public static PublicKey stringToPublicKey(String publicKeyString) {
-        try {
-            byte[] byteKey = Base64.getDecoder().decode(publicKeyString.getBytes());
-            X509EncodedKeySpec X509publicKey = new X509EncodedKeySpec(byteKey);
-            KeyFactory kf = KeyFactory.getInstance("RSA");
     
-            return kf.generatePublic(X509publicKey);
-        } catch (Exception e) {
-            throw new RuntimeException("Error reconstructing public key from string representation", e);
-        }
-    }
-
-    public static String publicKeyToString(PublicKey publicKey) {
-        return Base64.getEncoder().encodeToString(publicKey.getEncoded());
-    }
-    
-    */
-    
-
-
 }
