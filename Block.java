@@ -70,7 +70,7 @@ public class Block {
             this.nonce ++;
             this.hash = calculateHash();
         }
-        System.out.println("Block Mined!!! : " + this.hash);
+        System.out.println("Peer: "+this.blockchain.peer.id+" => Block Mined!!! : " + this.hash);
     }
 
 

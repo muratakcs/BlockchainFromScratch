@@ -138,25 +138,15 @@ public class Wallet {
 
 
 
-    // Return the private key of this wallet
-    public String getPrivateKeyString() {
-        return Base64.getEncoder().encodeToString(this.privateKey.getEncoded());
-    }
-
-    // Return the public key of this wallet
-    public String getPublicKeyString() {
-        return Base64.getEncoder().encodeToString(this.publicKey.getEncoded());
-    }
-
-
-
-
-    // CRYPTOGRAPHIC OPERATIONS
-
-
-    
     
 
+
+
+    //////////////////////////////////////////////////////////////////////////////
+    /////////////////// CRYPTOGRAPHIC OPERATIONS /////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
+
+    // Generates a public-private RSA key pair for this wallet
     public void generateKeyPair() {
         try {
             KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
@@ -167,6 +157,16 @@ public class Wallet {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    // Return the private key of this wallet
+    public String getPrivateKeyString() {
+        return Base64.getEncoder().encodeToString(this.privateKey.getEncoded());
+    }
+
+    // Return the public key of this wallet
+    public String getPublicKeyString() {
+        return Base64.getEncoder().encodeToString(this.publicKey.getEncoded());
     }
 
 
