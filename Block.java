@@ -36,8 +36,7 @@ public class Block {
         this.blockchain = blockchain;
 
         // Create mining reward transaction
-        Transaction miningReward = new Transaction( null,
-                                                    this.blockchain.peer.getPublicKey(),
+        Transaction miningReward = new Transaction( this.blockchain.peer.getPublicKey(),
                                                     this.blockchain.MININGREWARD/(2^(index/this.blockchain.HALVINGPERIOD)),
                                                     this.blockchain.peer);
 
@@ -52,13 +51,11 @@ public class Block {
     }
     
     public String calculateHash() {
-        String calculatedhash = StringUtil.applySha256(
-                previousHash +
-                Long.toString(timeStamp) +
-                Integer.toString(nonce) +
-                merkleRoot
-        );
-        return calculatedhash;
+        String dataToHash = previousHash +
+                            Long.toString(timeStamp) +
+                            Integer.toString(nonce) +
+                            merkleRoot;
+        return StringUtil.hash(dataToHash);
     }
 
     //Increases nonce value until hash target is reached.
@@ -73,7 +70,7 @@ public class Block {
             this.nonce ++;
             this.hash = calculateHash();
         }
-        System.out.println("Peer: "+this.blockchain.peer.id+" => Block Mined!!! : " + this.hash);
+        this.blockchain.peer.write(" => Block Mined!!! : " + this.hash);
     }
 
 
