@@ -28,7 +28,7 @@ class Transaction {
         this.recipient = to;
         this.value = value;
         this.timeStamp = System.currentTimeMillis();
-        this.transactionId = calculateHash();
+        this.transactionId = calculateHash();   // Setting id before finding out outputs a little misleading, will be fixed later.
 
         this.peer.wallet.arrangeFunds(to, value, outputs, this.transactionId);
     }
@@ -62,7 +62,7 @@ class Transaction {
 
     // This Calculates the transaction hash 
     public String calculateHash() throws NoSuchAlgorithmException {
-        String dataToHash = "" + this.sender + this.recipient + this.value + this.timeStamp;
+        String dataToHash = "" + this.sender + this.recipient + this.value + this.timeStamp;// There is a subtle caveat here!
         
         // Add inputs to the hash
         //for (TransactionInput input : this.inputs) {
