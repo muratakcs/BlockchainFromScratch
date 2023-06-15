@@ -51,6 +51,14 @@ public class Peer {
         }
     }
 
+    public void write(String s) {
+        for(int i=0; i<id; i++) {
+            System.out.print(" ");
+        }
+        System.out.println("PEER "+id+": ");
+        System.out.println(s);
+    }
+
     
 
 
