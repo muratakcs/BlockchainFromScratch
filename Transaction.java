@@ -83,7 +83,7 @@ class Transaction {
             e.printStackTrace();
         }
         return bytesToHex(hash);*/
-        return StringUtil.generateHash(dataToHash);
+        return StringUtil.hash(dataToHash);
     }
     
     
