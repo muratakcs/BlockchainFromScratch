@@ -3,15 +3,15 @@ import java.security.PublicKey;
 import java.util.*;
 
 public class Block {
-
-    public int index; // index of this block within the blockchain
     public Blockchain blockchain; // reference to the containing blockchain
-    public String hash;
+    public int index; // index of this block within the blockchain
     public String previousHash;
-    public String merkleRoot;
     public List<Transaction> transactions = new ArrayList<>();
-    public long timeStamp; 
+    public String merkleRoot;
     public int nonce;
+    public long timeStamp; 
+    public String hash;
+    public List<Block> next;//The list of next blocks. For iterating. Not used yet.
     
     // Constructor for genesis block
     public Block(PublicKey recipient, Blockchain bc) throws NoSuchAlgorithmException {

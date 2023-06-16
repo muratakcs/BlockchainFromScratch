@@ -156,11 +156,11 @@ class Transaction {
             i.UTXO = peer.blockchain.UTXOs.get(i.transactionOutputId);
         }
 
-        // Check if transaction is valid:
-        if(getInputsValue() < Blockchain.minimumTransaction) {
-            System.out.println("Transaction Inputs too small: " + getInputsValue());
-            return false;
-        }
+        // // Check if transaction is valid:
+        // if(getInputsValue() < Blockchain.minimumTransaction) {
+        //     System.out.println("Transaction Inputs too small: " + getInputsValue());
+        //     return false;
+        // }
 
         // Generate transaction outputs:
         int leftOver = getInputsValue() - value; //get value of inputs then the left over change:

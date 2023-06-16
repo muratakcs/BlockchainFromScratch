@@ -8,31 +8,31 @@ import java.util.List;
 public class Blockchain {
     
     public Peer peer; //Referring to the maintainer of this copy of the blockchain
-    public ArrayList<Block> blockchain;
-    public ArrayList<Transaction> mempool; //https://www.btcturk.com/bilgi-platformu/bitcoin-mempool-nedir/
-    public HashMap<String,TransactionOutput> UTXOs; 
-    public final int difficulty = 5;
-    public static int minimumTransaction = 1;
+    public ArrayList<Block> blocks; //Blocks in the blockchain
+    public ArrayList<Transaction> mempool; //All the txs arrived. https://www.btcturk.com/bilgi-platformu/bitcoin-mempool-nedir/
+    public HashMap<String,TransactionOutput> UTXOs; //Unspent tx outputs
+    public int difficulty = 5;    //Current difficulty of the blockchain (later can be changed as in btc)
     public int MININGREWARD = 2^10; // Mining reward will be 1024 at the beginning
     public final int HALVINGPERIOD = 10; // After every 10 blocks added, mining reward will be halved
+    //Question: How many coins are we going to get eventually then?
 
 
     public Blockchain(Peer p) throws InvalidKeyException, NoSuchAlgorithmException, SignatureException {
         peer = p;
+        blocks = new ArrayList<Block>();
         mempool = new ArrayList<>();
         UTXOs = new HashMap<String,TransactionOutput>();
-        blockchain = new ArrayList<Block>();
         createGenesisBlock();
     }
 
     // Add transactions to the blockchain
     public void addBlock(Block newBlock) {
         newBlock.mineBlock();
-        blockchain.add(newBlock);
-        if(blockchain.size()%HALVINGPERIOD == 0) MININGREWARD/=2;
+        blocks.add(newBlock);
+        if(blocks.size()%HALVINGPERIOD == 0) MININGREWARD/=2;
     }
     public Block getLastBlock() {
-        return blockchain.get(blockchain.size()-1);
+        return blocks.get(blocks.size()-1);
     }
     
     public void createGenesisBlock() throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
@@ -61,7 +61,7 @@ public class Blockchain {
 
         // Add it to the blockchain
         //addBlock(genesisBlock);
-        blockchain.add(genesisBlock);
+        blocks.add(genesisBlock);
         // Add the output transaction to UTXOs
         TransactionOutput output = new TransactionOutput(coinbase.recipient, coinbase.value, coinbase.transactionId);
         this.UTXOs.put(output.id, output);
@@ -77,9 +77,9 @@ public class Blockchain {
         tempUTXOs.putAll(UTXOs);
         
         // Loop through blockchain to check hashes:
-        for(int i=1; i < blockchain.size(); i++) {
-            currentBlock = blockchain.get(i);
-            previousBlock = blockchain.get(i-1);
+        for(int i=1; i < blocks.size(); i++) {
+            currentBlock = blocks.get(i);
+            previousBlock = blocks.get(i-1);
             // Compare registered hash and calculated hash:
             if(!currentBlock.hash.equals(currentBlock.calculateHash()) ){
                 System.out.println("#Current Hashes not equal");
